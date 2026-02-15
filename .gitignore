@@ -16,7 +16,7 @@ instance/
 
 # Cookies (sensitive data)
 cookies/
-*.txt
+cookies*.txt
 
 # IDE
 .vscode/
