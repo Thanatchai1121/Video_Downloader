@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .instagram-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .download-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .download-link:hover {
+            background: #218838;
+        }
+
+        .loader {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .cookie-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .cookie-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            color: #856404;
+        }
+
+        .cookie-status.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .status-icon {
+            font-size: 24px;
+        }
+
+        .guide-btn, .upload-btn {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .guide-btn {
+            background: #17a2b8;
+        }
+
+        .guide-btn:hover {
+            background: #138496;
+        }
+
+        .upload-btn {
+            background: #28a745;
+        }
+
+        .upload-btn:hover {
+            background: #218838;
+        }
+
+        .guide-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .guide-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .close-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .guide-content h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .step-content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .step-content a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .step-content a:hover {
+            text-decoration: underline;
+        }
+
+        .step-content code {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #e83e8c;
+        }
+
+        .features {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .feature-item::before {
+            content: "✓";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f0f0f0;
+            color: #666;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quality-selector {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .quality-selector h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        #qualityOptions {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .quality-btn {
+            padding: 12px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .quality-btn:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .quality-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .cookie-section-full {
+            padding: 20px;
+        }
+
+        .cookie-status-large {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe8a1 100%);
+            border: 2px solid #ffc107;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        .cookie-status-large.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-color: #28a745;
+        }
+
+        .status-icon-large {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .cookie-status-large h3 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .cookie-status-large p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .cookie-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .upload-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .upload-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-card h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .upload-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .upload-btn-card {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-btn-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-status {
+            margin-top: 15px;
+            padding: 12px;
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            color: #155724;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .check-icon {
+            font-size: 20px;
+        }
+
+        .guide-btn-large, .upload-btn-large {
+            width: 100%;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .guide-btn-large {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+
+        .guide-btn-large:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(23, 162, 184, 0.3);
+        }
+
+        .upload-btn-large {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+        }
+
+        .upload-btn-large:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .cookie-info {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 16px;
+        }
+
+        .cookie-info h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .info-card h4 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .info-card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .guide-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .guide-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .close-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .guide-content h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .step-content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .step-content a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .step-content a:hover {
+            text-decoration: underline;
+        }
+
+        .step-content code {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #e83e8c;
+        }
+
+        @media (max-width: 768px) {
+            .cookie-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="instagram-icon">📷</div>
+        
+        <div class="header">
+            <h1>Video Downloader</h1>
+            <p>ดาวน์โหลดวิดีโอจาก Instagram และ YouTube</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('instagram')">📷 Instagram</button>
+            <button class="tab-btn" onclick="switchTab('youtube')">▶️ YouTube</button>
+            <button class="tab-btn" onclick="switchTab('cookies')">🍪 ตั้งค่า Cookies</button>
+        </div>
+
+        <div class="tab-content" id="instagramTab">
+        <div class="input-group" id="downloadSection">
+            <div class="input-wrapper">
+                <input type="text" id="urlInput" placeholder="วาง URL ของ Instagram ที่นี่...">
+                <button onclick="downloadVideo()" id="downloadBtn">ดาวน์โหลด</button>
+            </div>
+        </div>
+
+        <div class="loader" id="loader"></div>
+        <div class="result" id="result"></div>
+
+        <div class="features">
+            <div class="feature-item">รองรับ Reels, Stories และ Carousel</div>
+            <div class="feature-item">ดึงความละเอียดสูงสุดอัตโนมัติ</div>
+            <div class="feature-item">ใช้งานง่าย ไม่ซับซ้อน</div>
+        </div>
+        </div>
+
+        <div class="tab-content" id="youtubeTab" style="display: none;">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <input type="text" id="ytUrlInput" placeholder="วาง URL ของ YouTube ที่นี่...">
+                    <button onclick="downloadYouTube()" id="ytDownloadBtn">ดาวน์โหลด</button>
+                </div>
+            </div>
+
+            <div class="quality-selector" id="qualitySelector" style="display: none;">
+                <h3>เลือกคุณภาพวิดีโอ:</h3>
+                <div id="qualityOptions"></div>
+            </div>
+
+            <div class="loader" id="ytLoader"></div>
+            <div class="result" id="ytResult"></div>
+
+            <div class="features">
+                <div class="feature-item">รองรับวิดีโอ YouTube ทุกประเภท</div>
+                <div class="feature-item">เลือกคุณภาพได้ตั้งแต่ 360p - 4K</div>
+                <div class="feature-item">ดาวน์โหลดเสียงอย่างเดียวได้</div>
+                <div class="feature-item">ใช้ cookies เดียวกันกับ Instagram</div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="cookiesTab" style="display: none;">
+            <div class="cookie-section-full">
+                <div class="cookie-status-large" id="cookieStatusLarge">
+                    <div class="status-icon-large">⚠️</div>
+                    <h3>ยังไม่มี Cookies</h3>
+                    <p>กรุณาอัปโหลด Cookies จาก Instagram หรือ YouTube เพื่อใช้งาน</p>
+                </div>
+
+                <div class="cookie-actions">
+                    <div class="upload-card">
+                        <div class="upload-icon">📷</div>
+                        <h3>Instagram Cookies</h3>
+                        <p>อัปโหลด cookies จาก Instagram</p>
+                        <input type="file" id="igCookieFile" accept=".txt" style="display: none;" onchange="uploadCookie('instagram')">
+                        <button onclick="document.getElementById('igCookieFile').click()" class="upload-btn-card" id="igUploadBtn">
+                            📁 อัปโหลด IG Cookies
+                        </button>
+                        <div class="upload-status" id="igStatus" style="display: none;">
+                            <span class="check-icon">✅</span>
+                            <span>อัปโหลดแล้ว</span>
+                        </div>
+                    </div>
+
+                    <div class="upload-card">
+                        <div class="upload-icon">▶️</div>
+                        <h3>YouTube Cookies</h3>
+                        <p>อัปโหลด cookies จาก YouTube</p>
+                        <input type="file" id="ytCookieFile" accept=".txt" style="display: none;" onchange="uploadCookie('youtube')">
+                        <button onclick="document.getElementById('ytCookieFile').click()" class="upload-btn-card" id="ytUploadBtn">
+                            📁 อัปโหลด YT Cookies
+                        </button>
+                        <div class="upload-status" id="ytStatus" style="display: none;">
+                            <span class="check-icon">✅</span>
+                            <span>อัปโหลดแล้ว</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <button onclick="showCookieGuide()" class="guide-btn-large">📖 วิธีดึง Cookies (คู่มือทีละขั้นตอน)</button>
+                </div>
+
+                <div class="cookie-info">
+                    <h3>ℹ️ ข้อมูลเกี่ยวกับ Cookies</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-icon">🔒</div>
+                            <h4>ปลอดภัย</h4>
+                            <p>Cookies จะถูกเก็บไว้ในเซิร์ฟเวอร์ของคุณเท่านั้น ไม่มีการส่งออกไปที่อื่น</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon">🌐</div>
+                            <h4>ใช้ได้ทั้ง 2 แพลตฟอร์ม</h4>
+                            <p>Cookies จาก Instagram หรือ YouTube ตัวใดก็ใช้ได้ทั้งคู่</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon">⏰</div>
+                            <h4>อัปเดตเป็นระยะ</h4>
+                            <p>ควรอัปโหลด Cookies ใหม่ทุก 1-2 สัปดาห์เพื่อความเสถียร</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guide Modal -->
+    <div class="guide-modal" id="guideModal" style="display: none;">
+        <div class="guide-content">
+            <button onclick="closeGuide()" class="close-btn">✕</button>
+            <h2>📖 วิธีดึง Cookies จาก Instagram/YouTube</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>ติดตั้ง Extension</h3>
+                    <p>เปิด Chrome Web Store แล้วค้นหา <strong>"Get cookies.txt LOCALLY"</strong></p>
+                    <p>หรือคลิก: <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc" target="_blank">ติดตั้ง Extension</a></p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>ล็อกอิน Instagram หรือ YouTube</h3>
+                    <p>เปิด <a href="https://www.instagram.com" target="_blank">Instagram.com</a> หรือ <a href="https://www.youtube.com" target="_blank">YouTube.com</a> และล็อกอินให้เรียบร้อย</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>รีเฟรชหน้าเว็บ</h3>
+                    <p>กด F5 หรือปุ่มรีเฟรชเพื่อโหลดหน้าเว็บใหม่</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Export Cookies</h3>
+                    <p>คลิกที่ไอคอน Extension "Get cookies.txt LOCALLY"</p>
+                    <p>กดปุ่ม <strong>"Export"</strong> (ปุ่มสีน้ำเงิน)</p>
+                    <p>จะได้ไฟล์ชื่อ <code>www.instagram.com_cookies.txt</code> หรือ <code>www.youtube.com_cookies.txt</code></p>
+                    <p><strong>หมายเหตุ:</strong> Cookies จาก Instagram หรือ YouTube ตัวใดตัวหนึ่งก็ใช้ได้ทั้งคู่</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3>อัปโหลดไฟล์</h3>
+                    <p>1. กลับมาที่เว็บนี้ แล้วไปที่แท็บ <strong>"🍪 ตั้งค่า Cookies"</strong></p>
+                    <p>2. เลือกปุ่มที่ตรงกับแพลตฟอร์ม:</p>
+                    <p>   - กดปุ่ม <strong>"📁 อัปโหลด IG Cookies"</strong> สำหรับ Instagram</p>
+                    <p>   - กดปุ่ม <strong>"📁 อัปโหลด YT Cookies"</strong> สำหรับ YouTube</p>
+                    <p>3. เลือกไฟล์ที่ดาวน์โหลดมา แล้วกด "เปิด"</p>
+                    <p>4. เมื่ออัปโหลดสำเร็จจะมีเครื่องหมาย ✅ แสดงขึ้น</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'instagram';
+        let selectedQuality = null;
+        let ytFormats = [];
+
+        // ตรวจสอบสถานะ cookies เมื่อโหลดหน้า
+        window.onload = async function() {
+            await checkCookieStatus();
+        };
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // อัปเดต UI ของ tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // แสดง/ซ่อน content
+            document.getElementById('instagramTab').style.display = tab === 'instagram' ? 'block' : 'none';
+            document.getElementById('youtubeTab').style.display = tab === 'youtube' ? 'block' : 'none';
+            document.getElementById('cookiesTab').style.display = tab === 'cookies' ? 'block' : 'none';
+        }
+
+        async function checkCookieStatus() {
+            try {
+                const response = await fetch('/check-cookie');
+                const data = await response.json();
+                
+                if (data.hasCookie) {
+                    // อัปเดตสถานะใน Cookies Tab
+                    const statusLarge = document.getElementById('cookieStatusLarge');
+                    statusLarge.className = 'cookie-status-large success';
+                    statusLarge.innerHTML = `
+                        <div class="status-icon-large">✅</div>
+                        <h3>Cookies พร้อมใช้งาน</h3>
+                        <p>คุณสามารถดาวน์โหลดจาก Instagram และ YouTube ได้แล้ว</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error checking cookie:', error);
+            }
+        }
+
+        function showCookieGuide() {
+            document.getElementById('guideModal').style.display = 'flex';
+        }
+
+        function closeGuide() {
+            document.getElementById('guideModal').style.display = 'none';
+        }
+
+        async function uploadCookie(platform) {
+            const fileInput = platform === 'instagram' ? document.getElementById('igCookieFile') : document.getElementById('ytCookieFile');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('cookie', file);
+            formData.append('platform', platform);
+
+            try {
+                const response = await fetch('/upload-cookie', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // แสดงสถานะติ๊กถูก
+                    const statusId = platform === 'instagram' ? 'igStatus' : 'ytStatus';
+                    const btnId = platform === 'instagram' ? 'igUploadBtn' : 'ytUploadBtn';
+                    
+                    document.getElementById(statusId).style.display = 'flex';
+                    document.getElementById(btnId).style.display = 'none';
+                    
+                    // อัปเดตสถานะหลัก
+                    const statusLarge = document.getElementById('cookieStatusLarge');
+                    statusLarge.className = 'cookie-status-large success';
+                    statusLarge.innerHTML = `
+                        <div class="status-icon-large">✅</div>
+                        <h3>Cookies พร้อมใช้งาน</h3>
+                        <p>คุณสามารถดาวน์โหลดจาก Instagram และ YouTube ได้แล้ว</p>
+                    `;
+                } else {
+                    alert(`เกิดข้อผิดพลาด: ${data.error}`);
+                }
+            } catch (error) {
+                alert(`เกิดข้อผิดพลาด: ${error.message}`);
+            }
+        }
+
+        async function downloadVideo() {
+            const url = document.getElementById('urlInput').value.trim();
+            const resultDiv = document.getElementById('result');
+            const loader = document.getElementById('loader');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            if (!url) {
+                showResult('กรุณาใส่ URL ของ Instagram', 'error');
+                return;
+            }
+
+            resultDiv.style.display = 'none';
+            loader.style.display = 'block';
+            downloadBtn.disabled = true;
+
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(
+                        `<strong>สำเร็จ!</strong><br>${data.title}<br>
+                        <a href="/file/${data.filename}" class="download-link" download>📥 ดาวน์โหลดไฟล์</a>`,
+                        'success'
+                    );
+                } else {
+                    showResult(`<strong>เกิดข้อผิดพลาด:</strong><br>${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`<strong>เกิดข้อผิดพลาด:</strong><br>${error.message}`, 'error');
+            } finally {
+                loader.style.display = 'none';
+                downloadBtn.disabled = false;
+            }
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                downloadVideo();
+            }
+        });
+
+        document.getElementById('ytUrlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                downloadYouTube();
+            }
+        });
+
+        async function downloadYouTube() {
+            const url = document.getElementById('ytUrlInput').value.trim();
+            const resultDiv = document.getElementById('ytResult');
+            const loader = document.getElementById('ytLoader');
+            const downloadBtn = document.getElementById('ytDownloadBtn');
+            const qualitySelector = document.getElementById('qualitySelector');
+
+            if (!url) {
+                showYTResult('กรุณาใส่ URL ของ YouTube', 'error');
+                return;
+            }
+
+            resultDiv.style.display = 'none';
+            qualitySelector.style.display = 'none';
+            loader.style.display = 'block';
+            downloadBtn.disabled = true;
+
+            try {
+                const response = await fetch('/youtube-info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    ytFormats = data.formats;
+                    displayQualityOptions(data.formats, data.title);
+                    qualitySelector.style.display = 'block';
+                } else {
+                    showYTResult(`<strong>เกิดข้อผิดพลาด:</strong><br>${data.error}`, 'error');
+                }
+            } catch (error) {
+                showYTResult(`<strong>เกิดข้อผิดพลาด:</strong><br>${error.message}`, 'error');
+            } finally {
+                loader.style.display = 'none';
+                downloadBtn.disabled = false;
+            }
+        }
+
+        function displayQualityOptions(formats, title) {
+            const optionsDiv = document.getElementById('qualityOptions');
+            optionsDiv.innerHTML = '';
+
+            formats.forEach((format, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'quality-btn';
+                btn.textContent = format.label;
+                btn.onclick = () => selectQuality(index, title);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        async function selectQuality(index, title) {
+            // อัปเดต UI
+            document.querySelectorAll('.quality-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+
+            selectedQuality = ytFormats[index];
+            const url = document.getElementById('ytUrlInput').value.trim();
+            const resultDiv = document.getElementById('ytResult');
+            const loader = document.getElementById('ytLoader');
+
+            resultDiv.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch('/youtube-download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        url: url,
+                        format_id: selectedQuality.format_id
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showYTResult(
+                        `<strong>สำเร็จ!</strong><br>${title}<br>คุณภาพ: ${selectedQuality.label}<br>
+                        <a href="/file/${data.filename}" class="download-link" download>📥 ดาวน์โหลดไฟล์</a>`,
+                        'success'
+                    );
+                } else {
+                    showYTResult(`<strong>เกิดข้อผิดพลาด:</strong><br>${data.error}`, 'error');
+                }
+            } catch (error) {
+                showYTResult(`<strong>เกิดข้อผิดพลาด:</strong><br>${error.message}`, 'error');
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function showYTResult(message, type) {
+            const resultDiv = document.getElementById('ytResult');
+            resultDiv.innerHTML = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
